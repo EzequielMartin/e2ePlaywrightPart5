@@ -2,6 +2,15 @@ const { test, expect, describe, beforeEach } = require('@playwright/test')
 
 describe("Note app", () => {
   beforeEach(async ({ page }) => {
+    await request.post("http://localhost:3001/api/testing/reset")
+    await request.post("http://localhost:3001/api/users",
+      {data: {
+        name: "Ezequiel Martin",
+        username: "ezem",
+        password: "aprendiendofullstack"
+      }}
+    )
+
     await page.goto('http://localhost:5173')
   })
 
@@ -16,7 +25,22 @@ describe("Note app", () => {
     await page.getByTestId("username").fill("ezem")
     await page.getByTestId("password").fill("aprendiendofullstack")
     await page.getByRole("button", { name: "login" }).click()
-
     await expect(page.getByText('Ezequiel Martin logged-in')).toBeVisible()
+  })
+
+  describe("When logged in", () => {
+    beforeEach(async ({ page }) => {
+      await page.getByRole('button', { name: 'log in' }).click()
+      await page.getByTestId('username').fill('ezem')
+      await page.getByTestId('password').fill('aprendiendofullstack')
+      await page.getByRole('button', { name: 'login' }).click()
+    })
+
+    test("A note can be created", async ({ page }) => {
+      await page.getByRole("button", { name: "New note" }).click()
+      await page.getByRole("textbox").fill("Creando una nota con Playwright")
+      await page.getByRole("button", { name: "save"}).click()
+      await expect(page.getByText("Creando una nota con Playwright")).toBeVisible()
+    })
   })
 })
